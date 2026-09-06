@@ -1,0 +1,41 @@
+const CACHE_NAME = 'financas-marina-luca-v1';
+
+const ARQUIVOS_CACHE = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ARQUIVOS_CACHE);
+    })
+  );
+
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((chaves) => {
+      return Promise.all(
+        chaves
+          .filter((chave) => chave !== CACHE_NAME)
+          .map((chave) => caches.delete(chave))
+      );
+    })
+  );
+
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((respostaCache) => {
+      return respostaCache || fetch(event.request);
+    })
+  );
+});
